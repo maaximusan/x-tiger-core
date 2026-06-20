@@ -1,0 +1,67 @@
+name: Deploy X-Tiger Core plugin to Beget test
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy plugin via SFTP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Verify plugin deploy path
+        env:
+          SFTP_PATH: ${{ secrets.BEGET_SFTP_PATH }}
+        run: |
+          if [ -z "$SFTP_PATH" ]; then
+            echo "BEGET_SFTP_PATH is empty."
+            exit 1
+          fi
+
+          case "$SFTP_PATH" in
+            *wp-content/plugins/x-tiger-core) ;;
+            *wp-content/plugins/x-tiger-core/) ;;
+            *)
+              echo "BEGET_SFTP_PATH must point to wp-content/plugins/x-tiger-core."
+              exit 1
+              ;;
+          esac
+
+      - name: Deploy plugin files
+        env:
+          SFTP_HOST: ${{ secrets.BEGET_SFTP_HOST }}
+          SFTP_USER: ${{ secrets.BEGET_SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.BEGET_SFTP_PASSWORD }}
+          SFTP_PATH: ${{ secrets.BEGET_SFTP_PATH }}
+        run: |
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$SFTP_HOST" <<EOF
+          set sftp:auto-confirm yes
+          set net:max-retries 2
+          set net:timeout 30
+          mkdir -p "$SFTP_PATH"
+          cd "$SFTP_PATH"
+          mirror --reverse --verbose \
+            --exclude-glob .git/ \
+            --exclude-glob .github/ \
+            --exclude-glob AGENTS.md \
+            --exclude-glob README.md \
+            --exclude-glob docs/ \
+            --exclude-glob node_modules/ \
+            --exclude-glob package.json \
+            --exclude-glob package-lock.json \
+            --exclude-glob tests/ \
+            --exclude-glob playwright.config.js \
+            --exclude-glob playwright-report/ \
+            --exclude-glob test-results/ \
+            ./ ./
+          bye
+          EOF
