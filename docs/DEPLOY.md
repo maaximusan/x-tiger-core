@@ -28,19 +28,51 @@ Do not store secret values in repository files.
 
 ## Target Path
 
-`BEGET_SFTP_PATH` must point to the plugin directory on the Beget test site:
+`BEGET_SFTP_PATH` must point to the plugin directory on the Beget test site.
+
+For the current Beget SFTP user:
+
+```text
+domainc8_xtigerdeploy2
+```
+
+the SFTP root is:
+
+```text
+/domainc8.beget.tech-00/public_html/wp-content/
+```
+
+Recommended secret value:
+
+```text
+BEGET_SFTP_PATH=plugins/x-tiger-core
+```
+
+The workflow also allows these safe target path forms:
+
+```text
+.
+plugins/x-tiger-core
+wp-content/plugins/x-tiger-core
+```
+
+It also allows any relative path ending with:
 
 ```text
 wp-content/plugins/x-tiger-core
 ```
 
-Use the full remote path required by Beget, but make sure it ends with:
+Use `.` only when the SFTP user root is already the plugin directory itself.
+
+Use a longer relative path only when the SFTP user root is above the WordPress installation, and make sure it ends with:
 
 ```text
 wp-content/plugins/x-tiger-core
 ```
 
-The workflow refuses to deploy when `BEGET_SFTP_PATH` does not end with the plugin path.
+Absolute paths are rejected by the workflow. `BEGET_SFTP_PATH` is always interpreted relative to the SFTP user root.
+
+The workflow refuses to deploy when `BEGET_SFTP_PATH` does not match one of the allowed plugin paths.
 
 ## Deploy Exclusions
 

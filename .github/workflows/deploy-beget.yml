@@ -27,11 +27,19 @@ jobs:
             exit 1
           fi
 
-          case "$SFTP_PATH" in
-            *wp-content/plugins/x-tiger-core) ;;
-            *wp-content/plugins/x-tiger-core/) ;;
+          SFTP_PATH_NORMALIZED="${SFTP_PATH%/}"
+
+          case "$SFTP_PATH_NORMALIZED" in
+            /*)
+              echo "BEGET_SFTP_PATH must be relative to the SFTP user root, not an absolute path."
+              exit 1
+              ;;
+            "." ) ;;
+            "plugins/x-tiger-core" ) ;;
+            "wp-content/plugins/x-tiger-core" ) ;;
+            *"/wp-content/plugins/x-tiger-core" ) ;;
             *)
-              echo "BEGET_SFTP_PATH must point to wp-content/plugins/x-tiger-core."
+              echo "BEGET_SFTP_PATH must be '.', 'plugins/x-tiger-core', 'wp-content/plugins/x-tiger-core', or a relative path ending with 'wp-content/plugins/x-tiger-core'."
               exit 1
               ;;
           esac
