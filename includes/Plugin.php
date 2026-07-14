@@ -9,10 +9,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Plugin {
 	public static function init(): void {
-		require_once X_TIGER_CORE_PATH . 'includes/Settings.php';
-		require_once X_TIGER_CORE_PATH . 'includes/Blocks.php';
+		if ( class_exists( Settings::class ) ) {
+			Settings::init();
+		}
 
-		Settings::init();
-		Blocks::init();
+		if ( class_exists( Blocks::class ) ) {
+			Blocks::init();
+		}
 	}
 }
