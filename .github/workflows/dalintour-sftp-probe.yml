@@ -1,0 +1,36 @@
+name: Dalintour SFTP scope probe
+
+on:
+  push:
+    branches:
+      - dalintour-sftp-probe-20260923
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Probe SFTP scope (read-only)
+        env:
+          SFTP_HOST: ${{ secrets.BEGET_SFTP_HOST }}
+          SFTP_USER: ${{ secrets.BEGET_SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.BEGET_SFTP_PASSWORD }}
+        run: |
+          set -eu
+          echo "Connecting with repository SFTP credentials..."
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$SFTP_HOST" <<'EOF'
+          set sftp:auto-confirm yes
+          set net:max-retries 1
+          set net:timeout 20
+          pwd
+          cls -1
+          cd ..
+          pwd
+          cls -1
+          cd ../..
+          pwd
+          cls -1
+          bye
+          EOF
